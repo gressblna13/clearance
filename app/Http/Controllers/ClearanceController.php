@@ -32,7 +32,6 @@ class ClearanceController extends Controller
             'kata_melanjutkan' => 'required',
         ]);
 
-        
         $item1 = $validated['item_belanja'][0] ?? '-';
         $item2 = $validated['item_belanja'][1] ?? '-';
         $anggaran1 = $validated['total_anggaran'][0] ?? '-';
@@ -41,17 +40,17 @@ class ClearanceController extends Controller
         $rekom2 = $validated['usulan_rekomendasi'][1] ?? '-';
 
         try {
-          
+        
             $templatePath = storage_path('app/templates/template_clearance.docx');
             
-           a
+          
             if (!file_exists($templatePath)) {
                 throw new \Exception("Template tidak ditemukan.");
             }
 
             $templateProcessor = new TemplateProcessor($templatePath);
 
-           
+       
             $templateProcessor->setValues([
                 'jabatan_instansi' => $validated['jabatan_instansi'],
                 'instansi' => $validated['instansi'],
@@ -71,15 +70,14 @@ class ClearanceController extends Controller
                 'kata_melanjutkan' => $validated['kata_melanjutkan'],
             ]);
 
-           
+      
             $fileName = 'Clearance_' . Str::slug($validated['instansi'], '_') . '_' . time() . '.docx';
             $outputPath = storage_path('app/' . $fileName);
             $templateProcessor->saveAs($outputPath);
 
-        
             return response()->download($outputPath)->deleteFileAfterSend(true);
         } catch (\Exception $e) {
-           
+            
             return back()->withErrors(['msg' => 'Terjadi kesalahan, coba lagi.']);
         }
     }
