@@ -164,6 +164,13 @@
                         <option value="tidak melanjutkan">Tidak Melanjutkan</option>
                     </select>
                 </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Usulan Rekomendasi</label>
+                    <select name="usulan_rekomendasi[]" class="form-select" required>
+                        <option value="Dilanjutkan">Dilanjutkan</option>
+                        <option value="Tidak Dilanjutkan">Tidak Dilanjutkan</option>
+                    </select>
+                </div>
 
                 <!-- Submit -->
                 <div class="col-12 text-center">
@@ -177,14 +184,13 @@
     </div>
 </div>
 
-<!-- Footer -->
+
 <footer>
     &copy; {{ date('Y') }} Clearance SPBE. All Rights Reserved.
 </footer>
 
-<!-- JS -->
-<script>
 
+<script>
 
 @if(session('success'))
     Swal.fire({

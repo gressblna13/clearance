@@ -15,7 +15,7 @@ class ClearanceController extends Controller
 
     public function store(Request $request)
     {
-      
+        
         $validated = $request->validate([
             'jabatan_instansi' => 'required',
             'instansi' => 'required',
@@ -32,52 +32,62 @@ class ClearanceController extends Controller
             'kata_melanjutkan' => 'required',
         ]);
 
-        $item1 = $validated['item_belanja'][0] ?? '-';
-        $item2 = $validated['item_belanja'][1] ?? '-';
-        $anggaran1 = $validated['total_anggaran'][0] ?? '-';
-        $anggaran2 = $validated['total_anggaran'][1] ?? '-';
-        $rekom1 = $validated['usulan_rekomendasi'][0] ?? '-';
-        $rekom2 = $validated['usulan_rekomendasi'][1] ?? '-';
+   
+        $namaKegiatan = $validated['nama_kegiatan'];
+        $itemList = $validated['item_belanja'];
+        $totalList = $validated['total_anggaran'];
+        $usulanList = $validated['usulan_rekomendasi'];
 
         try {
-        
+      
             $templatePath = storage_path('app/templates/template_clearance.docx');
             
-          
             if (!file_exists($templatePath)) {
                 throw new \Exception("Template tidak ditemukan.");
             }
 
+            
             $templateProcessor = new TemplateProcessor($templatePath);
 
-       
+           
             $templateProcessor->setValues([
                 'jabatan_instansi' => $validated['jabatan_instansi'],
                 'instansi' => $validated['instansi'],
+                'INSTANSI' => strtoupper($validated['instansi']),
                 'nomor_surat' => $validated['nomor_surat'],
                 'tanggal_surat' => $validated['tanggal_surat'],
                 'tanggal' => $validated['tanggal'],
                 'tahun_anggaran' => $validated['tahun_anggaran'],
                 'perihal' => $validated['perihal'],
-                'nama_kegiatan' => $validated['nama_kegiatan'],
+                'nama_kegiatan' => $namaKegiatan,
                 'belanja_infrastruktur' => $validated['belanja_infrastruktur'],
-                'item1' => $item1,
-                'item2' => $item2,
-                'anggaran1' => $anggaran1,
-                'anggaran2' => $anggaran2,
-                'rekom1' => $rekom1,
-                'rekom2' => $rekom2,
                 'kata_melanjutkan' => $validated['kata_melanjutkan'],
             ]);
 
-      
+           
+            // $jumlahBaris = count($itemList);
+            $templateProcessor->cloneRow('item_belanja', count($itemList)); // Duplikasi baris  
+            $templateProcessor->cloneRow('item_belanja1', count($itemList)); // Duplikasi baris  
+            $templateProcessor->cloneRow('item_belanja2', count($itemList)); // Duplikasi baris  
+            foreach ($itemList as $index => $itemBelanja) {
+                $row = $index + 1; 
+                $templateProcessor->setValue("item_belanja#{$row}", $itemBelanja);
+                $templateProcessor->setValue("item_belanja1#{$row}", $itemBelanja);
+                $templateProcessor->setValue("item_belanja2#{$row}", $itemBelanja);
+                $templateProcessor->setValue("total_anggaran#{$row}", $totalList[$index]);
+                $templateProcessor->setValue("usulan_rekomendasi#{$row}", $usulanList[$index]);
+            }
+     
+
             $fileName = 'Clearance_' . Str::slug($validated['instansi'], '_') . '_' . time() . '.docx';
             $outputPath = storage_path('app/' . $fileName);
             $templateProcessor->saveAs($outputPath);
 
-            return response()->download($outputPath)->deleteFileAfterSend(true);
-        } catch (\Exception $e) {
             
+            return response()->download($outputPath)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+           
             return back()->withErrors(['msg' => 'Terjadi kesalahan, coba lagi.']);
         }
     }
